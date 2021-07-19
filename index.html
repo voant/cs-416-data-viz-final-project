@@ -15,19 +15,47 @@
 <svg width=1000 height=1000> </svg>
 
 <script>
-function loadCSV(csvFilePath) {
-    d3.csv(csvFilePath).then(function(data) {
-        for (let i = 0; i < data.length; i++) {
-            console.log(i)
-            console.log(data[i])
-        }
+
+function init() {
+    //cpiFile = 'CPIAPPSL_cpi_apparel.csv';
+    //cpiFile = 'CPIAUCSL_cpi_all.csv';
+    //cpiFile = 'CPIEDUSL_cpi_education_communication.csv';
+    //cpiFile = 'CPIFABSL_cpi_food_beverages.csv';
+    //cpiFile = 'CPIHOSSL_cpi_housing.csv';
+    //cpiFile = 'CPIMEDSL_cpi_medical.csv';
+    //cpiFile = 'CPIOGSSL_cpi_other_goods_and_services.csv';
+    //cpiFile = 'CPIRECSL_cpi_recreation.csv';
+    cpiFile = 'CPITRNSL_cpi_transportation.csv';
+
+
+    csvRes = d3.csv(cpiFile, function(data) {
+        return { date : d3.timeParse('%Y-%m-%d')(data.DATE), cpi : parseFloat(data.CPI) }
+    });
+    
+    csvRes.then(function(data) {
+        calculateInflation(data);
+        console.log(data);
+        setupViz(data);
     });
 }
 
-function init() {
-    loadCSV('CPIAUCSL_cpi_all.csv');
+function calculateInflation(data) {
+    for (let i = 0; i < data.length; i++) {
+        if ((i >= 0) && (i < 12)) {
+            data[i]['inflation'] = undefined;
+        }
+        else {
+            data[i]['inflation'] = ((data[i]['cpi'] - data[i-12]['cpi']) / 
+                data[i-12]['cpi']) * 100
+        }
+    }
 
-    const tempData = [
+    data.splice(0, 12);
+}
+
+function setupViz(data) {
+    /*
+    const data = [
         {date: new Date('2021-01-01'), data: -0.3},
         {date: new Date('2021-02-01'), data: 1},
         {date: new Date('2021-03-01'), data: 2},
@@ -36,31 +64,32 @@ function init() {
         {date: new Date('2021-06-01'), data: 1.7},
         {date: new Date('2021-07-01'), data: -0.7},
         {date: new Date('2021-08-01'), data: -0.7}
-    ]
+    ];
+    */
 
     const height = 300
     const width = 800
     const margin = 50;
 
     const xScale = d3.scaleTime()
-        .domain(d3.extent(tempData, function(d) { return d.date }))
+        .domain(d3.extent(data, function(d) { return d.date }))
         .range([0, width])
 
     const yScale = d3.scaleLinear()
-        .domain([-2, 10])
+        .domain([-2, 15])
         .range([height, 0])
 
     d3.select('svg')
         .append('g')
             .attr('transform', 'translate(' + margin + ',' + margin + ')')
         .append('path')
-            .datum(tempData)
+            .datum(data)
             .attr('fill', 'none')
             .attr('stroke', 'steelblue')
             .attr('stroke-width', 2)
             .attr('d', d3.line()
                 .x(function(d) { return xScale(d.date) })
-                .y(function(d) { return yScale(d.data) }))
+                .y(function(d) { return yScale(d.inflation) }))
 
     locale = d3.formatLocale({
         decimal: ".",
