@@ -34,12 +34,85 @@
     <div class="col-1"></div>
 </div>
 
+<div class="row"> <div class="col-11">
+
+<!--
+<div class="btn-group" role="group">
+    <input type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off" checked>
+    <label class="btn btn-outline-primary" for="btnradio1">Radio 1</label>
+  
+    <input type="radio" class="btn-check" name="btnradio" id="btnradio2" autocomplete="off">
+    <label class="btn btn-outline-primary" for="btnradio2">Radio 2</label>
+  
+    <input type="radio" class="btn-check" name="btnradio" id="btnradio3" autocomplete="off">
+    <label class="btn btn-outline-primary" for="btnradio3">Radio 3</label>
+  </div>
+
+</div></div>
+-->
+
+<div class="row">
+    <div class="btn-group" id="cpi-categories" style="visibility: hidden" role="group">
+        <input type="radio" class="btn-check" name="btnradio" id="cpi-all" autocomplete="off" checked>
+        <label class="btn btn-outline-primary" for="cpi-all">
+            All
+        </label>
+
+        <input type="radio" class="btn-check" name="btnradio" id="cpi-apparel" autocomplete="off">
+        <label class="btn btn-outline-primary" for="cpi-apparel">
+            Apparel
+        </label>
+      
+        <input type="radio" class="btn-check" name="btnradio" id="cpi-education" autocomplete="off">
+        <label class="btn btn-outline-primary" for="cpi-education">
+            Education and Communication
+        </label>
+        <input type="radio" class="btn-check" name="btnradio" id="cpi-food" autocomplete="off">
+        <label class="btn btn-outline-primary" for="cpi-food">
+            Food and Beverages
+        </label>
+
+        <input type="radio" class="btn-check" name="btnradio" id="cpi-housing" autocomplete="off">
+        <label class="btn btn-outline-primary" for="cpi-housing">
+            Housing
+        </label>
+      
+        <input type="radio" class="btn-check" name="btnradio" id="cpi-medical" autocomplete="off">
+        <label class="btn btn-outline-primary" for="cpi-medical">
+             Medical Care
+        </label>
+      
+        <input type="radio" class="btn-check" name="btnradio" id="cpi-other" autocomplete="off">
+        <label class="btn btn-outline-primary" for="cpi-other">
+            Other Goods and Services
+        </label>
+
+        <input type="radio" class="btn-check" name="btnradio" id="cpi-recreation" autocomplete="off">
+        <label class="btn btn-outline-primary" for="cpi-recreation">
+             Recreation
+        </label>
+      
+        <input type="radio" class="btn-check" name="btnradio" id="cpi-transportation" autocomplete="off">
+        <label class="btn btn-outline-primary" for="cpi-transportation">
+            Transportation
+        </label>
+
+
+
+
+      </div>
+
+</div>
+
+<div class="row">
+    <br>
+</div>
+
 <div class="row">
 
     <div class="col-10">
         <button type="button" class="btn btn-outline-primary" onclick="prevClick()">Prev</button>
         <button type="button" class="btn btn-outline-primary" onclick="nextClick()">Next</button>
-
     </div>
 
     <div id="page-div" class="col-1">
@@ -54,11 +127,15 @@
 </div>
 
 <script>
+let chosenCPIFile = 'CPIAUCSL_cpi_all.csv';
 let pageCounter = 1;
+const height = 300;
+const width = 800;
+const margin = 50;
 
 function init() {
     //cpiFile = 'CPIAPPSL_cpi_apparel.csv';
-    cpiFile = 'CPIAUCSL_cpi_all.csv';
+    //cpiFile = 'CPIAUCSL_cpi_all.csv';
     //cpiFile = 'CPIEDUSL_cpi_education_communication.csv';
     //cpiFile = 'CPIFABSL_cpi_food_beverages.csv';
     //cpiFile = 'CPIHOSSL_cpi_housing.csv';
@@ -67,18 +144,10 @@ function init() {
     //cpiFile = 'CPIRECSL_cpi_recreation.csv';
     //cpiFile = 'CPITRNSL_cpi_transportation.csv';
 
+    setupCategoryButtonClicks();
+    setupViz();
+    updatePage();
 
-    csvRes = d3.csv(cpiFile, function(data) {
-        return { date : d3.timeParse('%Y-%m-%d')(data.DATE), cpi : parseFloat(data.CPI) }
-    });
-    
-    csvRes.then(function(data) {
-        calculateInflation(data);
-        data = data.filter(
-            d => d.date.getFullYear() > 1883 && d.date.getFullYear() < 2022);
-        console.log(data);
-        setupViz(data);
-    });
 }
 
 function calculateInflation(data) {
@@ -95,24 +164,71 @@ function calculateInflation(data) {
     data.splice(0, 12);
 }
 
-function setupViz(data) {
-    /*
-    const data = [
-        {date: new Date('2021-01-01'), data: -0.3},
-        {date: new Date('2021-02-01'), data: 1},
-        {date: new Date('2021-03-01'), data: 2},
-        {date: new Date('2021-04-01'), data: 3},
-        {date: new Date('2021-05-01'), data: 2.4},
-        {date: new Date('2021-06-01'), data: 1.7},
-        {date: new Date('2021-07-01'), data: -0.7},
-        {date: new Date('2021-08-01'), data: -0.7}
-    ];
-    */
+function setupViz() {
+    d3.select('svg')
+        .append('g')
+            .attr('transform', 'translate(' + margin + ',' + margin + ')')
+        .append('path')
+            .attr('id', 'line-graph')
+            .attr('fill', 'none')
+            .attr('stroke', 'steelblue')
+            .attr('stroke-width', 2)
 
-    const height = 300;
-    const width = 800;
-    const margin = 50;
+    d3.select('svg')
+        .append('g')
+            .attr('id', 'y-axis')
+            .attr('transform', 'translate(' + margin + ',' + margin + ')')
 
+    d3.select('svg')
+        .append('g')
+            .attr('id', 'x-axis')
+}
+
+function updatePage() {
+    const cpiFile = (pageCounter == 5)? chosenCPIFile : 'CPIAUCSL_cpi_all.csv';
+
+    let lowerYear, upperYear;
+    if (pageCounter == 1) {
+        lowerYear = 2013
+        upperYear = 2022
+    }
+    else if (pageCounter == 2) {
+        lowerYear = 1954
+        upperYear = 1963
+    }
+    else if (pageCounter == 3) {
+        lowerYear = 1963
+        upperYear = 1983
+    }
+    else if (pageCounter == 4) {
+        lowerYear = 1983
+        upperYear = 2022
+    }
+    else {
+        lowerYear = 1954
+        upperYear = 2022
+    }
+
+    if (pageCounter == 5) {
+        d3.select('#cpi-categories').style('visibility', 'visible')
+    }
+    else {
+        d3.select('#cpi-categories').style('visibility', 'hidden')
+    }
+
+    csvRes = d3.csv(cpiFile, function(data) {
+        return { date : d3.timeParse('%Y-%m-%d')(data.DATE), cpi : parseFloat(data.CPI) }
+    });
+    
+    csvRes.then(function(data) {
+        calculateInflation(data);
+        data = data.filter(
+            d => d.date.getFullYear() >= lowerYear && d.date.getFullYear() < upperYear);
+        updateLineGraph(data);
+    });
+}
+
+function updateLineGraph(data) {
     const xScale = d3.scaleTime()
         .domain(d3.extent(data, function(d) { return d.date }))
         .range([0, width]);
@@ -120,19 +236,6 @@ function setupViz(data) {
     const yScale = d3.scaleLinear()
         .domain([-2, 15])
         .range([height, 0]);
-
-    d3.select('svg')
-        .append('g')
-            .attr('transform', 'translate(' + margin + ',' + margin + ')')
-        .append('path')
-            .datum(data)
-            .attr('id', 'line-graph')
-            .attr('fill', 'none')
-            .attr('stroke', 'steelblue')
-            .attr('stroke-width', 2)
-            .attr('d', d3.line()
-                .x(function(d) { return xScale(d.date) })
-                .y(function(d) { return yScale(d.inflation) }));
 
     locale = d3.formatLocale({
         decimal: ".",
@@ -142,49 +245,19 @@ function setupViz(data) {
         minus: "-"
         });
 
-    d3.select('svg')
-        .append('g')
-            .attr('transform', 'translate(' + margin + ',' + margin + ')')
+    d3.select('#y-axis')
         .call(d3.axisLeft(yScale).tickFormat(locale.format('~s')));
 
-    d3.select('svg')
-        .append('g')
-            .attr('transform', 'translate(' + margin + ',' + (margin + yScale(0)) + ')')
+    d3.select('#x-axis')
+        .attr('transform', 'translate(' + margin + ',' + (margin + yScale(0)) + ')')
+        .transition()
+        .duration(2000)
         .call(d3.axisTop(xScale));
 
-}
-
-function updatePage() {
-    const cpiFile = 'CPITRNSL_cpi_transportation.csv';
-
-    csvRes = d3.csv(cpiFile, function(data) {
-        return { date : d3.timeParse('%Y-%m-%d')(data.DATE), cpi : parseFloat(data.CPI) }
-    });
-    
-    csvRes.then(function(data) {
-        calculateInflation(data);
-        data = data.filter(
-            d => d.date.getFullYear() > 1883 && d.date.getFullYear() < 2022);
-        updateLineGraph(data);
-    });
-}
-
-function updateLineGraph(data) {
-    const height = 300;
-    const width = 800;
-    const margin = 50;
-
-    const xScale = d3.scaleTime()
-        .domain(d3.extent(data, function(d) { return d.date }))
-        .range([0, width]);
-
-    const yScale = d3.scaleLinear()
-        .domain([-2, 15])
-        .range([height, 0]);
-
-    d3.select('#line-graph').datum(data).attr('d', d3.line()
-        .x(function(d) { return xScale(d.date) })
-        .y(function(d) { return yScale(d.inflation) }));
+    d3.select('#line-graph').datum(data)
+        .attr('d', d3.line()
+            .x(function(d) { return xScale(d.date) })
+            .y(function(d) { return yScale(d.inflation) }));
 }
 
 function prevClick() {
@@ -202,7 +275,47 @@ function nextClick() {
         pageCounter++;
     d3.select('#page-div').html(pageCounter + '/5')
 
-    console.log('next click');
+    updatePage();
+}
+
+function setupCategoryButtonClicks() {
+    d3.select("#cpi-all").on('click', function() {
+        chosenCPIFile = 'CPIAUCSL_cpi_all.csv';
+        updatePage();
+    });
+    d3.select("#cpi-apparel").on('click', function() {
+        chosenCPIFile = 'CPIAPPSL_cpi_apparel.csv';
+        updatePage();
+
+    });
+    d3.select("#cpi-education").on('click', function() {
+        chosenCPIFile = 'CPIEDUSL_cpi_education_communication.csv';
+        updatePage();
+    });
+    d3.select("#cpi-food").on('click', function() {
+        chosenCPIFile = 'CPIFABSL_cpi_food_beverages.csv';
+        updatePage();
+    });
+    d3.select("#cpi-housing").on('click', function() {
+        chosenCPIFile = 'CPIHOSSL_cpi_housing.csv';
+        updatePage();
+    });
+    d3.select("#cpi-medical").on('click', function() {
+        chosenCPIFile = 'CPIMEDSL_cpi_medical.csv';
+        updatePage();
+    });
+    d3.select("#cpi-other").on('click', function() {
+        chosenCPIFile = 'CPIOGSSL_cpi_other_goods_and_services.csv';
+        updatePage();
+    });
+    d3.select("#cpi-recreation").on('click', function() {
+        chosenCPIFile = 'CPIRECSL_cpi_recreation.csv';
+        updatePage();
+    });
+    d3.select("#cpi-transportation").on('click', function() {
+        chosenCPIFile = 'CPITRNSL_cpi_transportation.csv';
+        updatePage();
+    });
 }
 
 
