@@ -83,11 +83,7 @@
             Transportation
         </label>
 
-
-
-
       </div>
-
 </div>
 
 <div class="row">
@@ -119,20 +115,9 @@ const width = 800;
 const margin = 50;
 
 function init() {
-    //cpiFile = 'CPIAPPSL_cpi_apparel.csv';
-    //cpiFile = 'CPIAUCSL_cpi_all.csv';
-    //cpiFile = 'CPIEDUSL_cpi_education_communication.csv';
-    //cpiFile = 'CPIFABSL_cpi_food_beverages.csv';
-    //cpiFile = 'CPIHOSSL_cpi_housing.csv';
-    //cpiFile = 'CPIMEDSL_cpi_medical.csv';
-    //cpiFile = 'CPIOGSSL_cpi_other_goods_and_services.csv';
-    //cpiFile = 'CPIRECSL_cpi_recreation.csv';
-    //cpiFile = 'CPITRNSL_cpi_transportation.csv';
-
     setupCategoryButtonClicks();
     setupViz();
     updatePage();
-
 }
 
 function calculateInflation(data) {
@@ -157,12 +142,12 @@ function setupViz() {
             .attr('id', 'line-graph')
             .attr('fill', 'none')
             .attr('stroke', 'steelblue')
-            .attr('stroke-width', 2)
+            .attr('stroke-width', 2);
 
     d3.select('svg')
         .append('g')
             .attr('id', 'y-axis')
-            .attr('transform', 'translate(' + margin + ',' + margin + ')')
+            .attr('transform', 'translate(' + margin + ',' + margin + ')');
 
     d3.select('svg')
         .append('g').append('text')
@@ -173,16 +158,16 @@ function setupViz() {
             .attr('dy', '1em')
             .style('font-size', '13px')
             .style('text-anchor', 'middle')
-            .text('Inflation rate (%)')
+            .text('Inflation rate (%)');
 
     d3.select('svg')
         .append('g')
-            .attr('id', 'x-axis')
+            .attr('id', 'x-axis');
 
     d3.select('svg')
         .append('g')
             .attr('id', 'annotation-group')
-            .attr('transform', 'translate(' + margin + ',' + margin + ')')
+            .attr('transform', 'translate(' + margin + ',' + margin + ')');
 }
 
 function updatePage() {
@@ -204,47 +189,46 @@ function updatePage() {
     else if (pageCounter == 3) {
         lowerYear = 1963;
         upperYear = 1980;
-        annotations = [];
+        annotations = [
+            {date: new Date('1971-08-01'), annotation: 'Bretton Woods abandoned', height: 14},
+            {date: new Date('1973-10-01'), annotation: 'Arab oil embargo', height: 13},
+            {date: new Date('1979-04-01'), annotation: 'Iranian oil shock', height: 14},
+        ];
         narrativeText = getPage3Text();
     }
     else if (pageCounter == 4) {
-        lowerYear = 1979;
+        lowerYear = 1978;
         upperYear = 2022;
         annotations = [
-            {date: new Date('1985-01-01'), annotation: 'first annotation'},
-            {date: new Date('1995-01-01'), annotation: 'second annotation'},
-            {date: new Date('2000-01-01'), annotation: 'third annotation'},
+            {date: new Date('1979-04-01'), annotation: 'Volcker becomes Fed chairman', height: 15},
         ];
         narrativeText = getPage4Text();
     }
     else {
         lowerYear = 1954;
         upperYear = 2022;
-        annotations = [
-            {date: new Date('1956-01-01'), annotation: 'first annotation'},
-            {date: new Date('1957-01-01'), annotation: 'second annotation'},
-            {date: new Date('1958-01-01'), annotation: 'third annotation'},
-        ];
+        annotations = [];
         narrativeText = getPage5Text();
     }
 
     if (pageCounter == 5) {
-        d3.select('#cpi-categories').style('visibility', 'visible')
+        d3.select('#cpi-categories').style('visibility', 'visible');
     }
     else {
-        d3.select('#cpi-categories').style('visibility', 'hidden')
+        d3.select('#cpi-categories').style('visibility', 'hidden');
     }
 
     d3.select('#narrative').html(narrativeText);
 
     csvRes = d3.csv(cpiFile, function(data) {
-        return { date : d3.timeParse('%Y-%m-%d')(data.DATE), cpi : parseFloat(data.CPI) }
+        return { date : d3.timeParse('%Y-%m-%d')(data.DATE), cpi : parseFloat(data.CPI) };
     });
     
     csvRes.then(function(data) {
         calculateInflation(data);
         data = data.filter(
             d => d.date.getFullYear() >= lowerYear && d.date.getFullYear() < upperYear);
+        console.log(data);
         updateLineGraph(data, annotations);
     });
 }
@@ -258,6 +242,7 @@ function updateLineGraph(data, annotations) {
         .domain([-2, 15])
         .range([height, 0]);
 
+    //avoid issues rendering unicode dash by using minus sign instead for negative numbers
     locale = d3.formatLocale({
         decimal: ".",
         thousands: ",",
@@ -303,7 +288,7 @@ function updateLineGraph(data, annotations) {
         .append('text')
         .merge(textSelection)
         .attr('x', function(d) { return xScale(d.date); })
-        .attr('y', yScale(14.5))
+        .attr('y', function(d) { return yScale(d.height) })
         .text(function(d) { return d.annotation; })
         .style('font-size', '14px');
 
@@ -314,7 +299,7 @@ function updateLineGraph(data, annotations) {
 function prevClick() {
     if (pageCounter > 1)
         pageCounter--;
-    d3.select('#page-div').html(pageCounter + '/5')
+    d3.select('#page-div').html(pageCounter + '/5');
 
     updatePage();
 }
@@ -322,7 +307,7 @@ function prevClick() {
 function nextClick() {
     if (pageCounter < 5)
         pageCounter++;
-    d3.select('#page-div').html(pageCounter + '/5')
+    d3.select('#page-div').html(pageCounter + '/5');
 
     updatePage();
 }
@@ -335,7 +320,6 @@ function setupCategoryButtonClicks() {
     d3.select("#cpi-apparel").on('click', function() {
         chosenCPIFile = 'CPIAPPSL_cpi_apparel.csv';
         updatePage();
-
     });
     d3.select("#cpi-education").on('click', function() {
         chosenCPIFile = 'CPIEDUSL_cpi_education_communication.csv';
@@ -376,7 +360,7 @@ function getPage1Text() {
         "government spending and substantial money creation by the Federal " +
         "Reserve to support this spending, we are now seeing inflation rates approach " +
         "5%.  To understand this issue better, it helps to look at the history " +
-        "of inflation in the US and where we stand today."
+        "of inflation in the US and where we stand today.";
 }
 
 function getPage2Text() {
@@ -384,7 +368,7 @@ function getPage2Text() {
         "inflation.  Under the Bretton Woods system, the US dollar was tied to gold " +
         "reserves.  Since the US dollar was backed by an underlying asset with " + 
         "intrinsic value, that kept inflation limited.  However, this period of low " +
-        "inflation would not last."
+        "inflation would not last.";
 }
 
 function getPage3Text() {
@@ -392,7 +376,7 @@ function getPage3Text() {
         "the US dollar.  At some point, the US no longer had sufficient gold reserves " +
         "to be able to convert dollars into gold.  During the late 1960s, an increase " +
         "in inflation led to increased demands for conversions leading the US to abandon " +
-        "the Breton Woods system in 1971.  With the US dollar no longer tied to gold " +
+        "the Bretton Woods system in 1971.  With the US dollar no longer tied to gold " +
         "and energy crises in the 1970s, inflation skyrocketed.";
 }
 
@@ -402,17 +386,17 @@ function getPage4Text() {
         "measures can also increase unemployment and limit the growth of the economy, " +
         "stopping inflation would likely inflict even more harm to the well-being of citizens. " +
         "However, at this point, the harm of inflation was clear and the Federal Reserve was " +
-        "committed to limiting the growth of the money supply.  After two recessions, " +
-        "inflation substantially decreased and has remained low since then."
+        "committed to taking aggressive action to limit the growth of the money supply. " +
+        " After two recessions and a period of increased unemployment, inflation substantially " +
+        "decreased and has remained low since then.";
 }
 
 function getPage5Text() {
-    return "";
+    return "Inflation rates are calculated from the CPI (consumer price index) which reflects the prices " +
+        "of a basket of goods from the economy.  Below, you can see the different categories of goods used " +
+        "to calculate the CPI.  Click on a category to find inflation rates for each individual category " +
+        "and explore how different goods contributed to inflation during different time periods.";
 }
-
-
-
-
 
 </script>
 
