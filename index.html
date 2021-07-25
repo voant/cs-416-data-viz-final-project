@@ -19,37 +19,22 @@
 </div>
 
 <div class="row">
-<section id="narrative">
-    Narrative here.
-</section>
-</div>
-
-<div class="row">
     <div class="col-1"></div>
 
     <div class="col-auto">
-    <svg width=1000 height=500> </svg>
+    <svg width=1000 height=400> </svg>
     </div>
 
     <div class="col-1"></div>
 </div>
 
-<div class="row"> <div class="col-11">
-
-<!--
-<div class="btn-group" role="group">
-    <input type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off" checked>
-    <label class="btn btn-outline-primary" for="btnradio1">Radio 1</label>
-  
-    <input type="radio" class="btn-check" name="btnradio" id="btnradio2" autocomplete="off">
-    <label class="btn btn-outline-primary" for="btnradio2">Radio 2</label>
-  
-    <input type="radio" class="btn-check" name="btnradio" id="btnradio3" autocomplete="off">
-    <label class="btn btn-outline-primary" for="btnradio3">Radio 3</label>
-  </div>
-
-</div></div>
--->
+<div class="row">
+<div class="col-11">
+<section id="narrative">
+    Narrative here.
+</section>
+</div>
+</div>
 
 <div class="row">
     <div class="btn-group" id="cpi-categories" style="visibility: hidden" role="group">
@@ -67,6 +52,7 @@
         <label class="btn btn-outline-primary" for="cpi-education">
             Education and Communication
         </label>
+
         <input type="radio" class="btn-check" name="btnradio" id="cpi-food" autocomplete="off">
         <label class="btn btn-outline-primary" for="cpi-food">
             Food and Beverages
@@ -121,7 +107,6 @@
 
 </div>
 
-</div>
 
 </body>
 </div>
@@ -180,33 +165,67 @@ function setupViz() {
             .attr('transform', 'translate(' + margin + ',' + margin + ')')
 
     d3.select('svg')
+        .append('g').append('text')
+            .attr('id', 'y-axis-label')
+            .attr('transform', 'rotate(-90)')
+            .attr('x', -200)
+            .attr('y', 0)
+            .attr('dy', '1em')
+            .style('font-size', '13px')
+            .style('text-anchor', 'middle')
+            .text('Inflation rate (%)')
+
+    d3.select('svg')
         .append('g')
             .attr('id', 'x-axis')
+
+    d3.select('svg')
+        .append('g')
+            .attr('id', 'annotation-group')
+            .attr('transform', 'translate(' + margin + ',' + margin + ')')
 }
 
 function updatePage() {
     const cpiFile = (pageCounter == 5)? chosenCPIFile : 'CPIAUCSL_cpi_all.csv';
 
-    let lowerYear, upperYear;
+    let lowerYear, upperYear, annotations, narrativeText;
     if (pageCounter == 1) {
-        lowerYear = 2013
-        upperYear = 2022
+        lowerYear = 2013;
+        upperYear = 2022;
+        annotations = [];
+        narrativeText = getPage1Text();
     }
     else if (pageCounter == 2) {
-        lowerYear = 1954
-        upperYear = 1963
+        lowerYear = 1954;
+        upperYear = 1963;
+        annotations = [];
+        narrativeText = getPage2Text();
     }
     else if (pageCounter == 3) {
-        lowerYear = 1963
-        upperYear = 1983
+        lowerYear = 1963;
+        upperYear = 1980;
+        annotations = [];
+        narrativeText = getPage3Text();
     }
     else if (pageCounter == 4) {
-        lowerYear = 1983
-        upperYear = 2022
+        lowerYear = 1979;
+        upperYear = 2022;
+        annotations = [
+            {date: new Date('1985-01-01'), annotation: 'first annotation'},
+            {date: new Date('1995-01-01'), annotation: 'second annotation'},
+            {date: new Date('2000-01-01'), annotation: 'third annotation'},
+        ];
+        narrativeText = getPage4Text();
     }
     else {
-        lowerYear = 1954
-        upperYear = 2022
+        lowerYear = 1954;
+        upperYear = 2022;
+        annotations = [
+            {date: new Date('1956-01-01'), annotation: 'first annotation'},
+            {date: new Date('1957-01-01'), annotation: 'second annotation'},
+            {date: new Date('1958-01-01'), annotation: 'third annotation'},
+        ];
+        narrativeText = getPage5Text();
     }
 
     if (pageCounter == 5) {
@@ -216,6 +235,8 @@ function updatePage() {
         d3.select('#cpi-categories').style('visibility', 'hidden')
     }
 
+    d3.select('#narrative').html(narrativeText);
+
     csvRes = d3.csv(cpiFile, function(data) {
         return { date : d3.timeParse('%Y-%m-%d')(data.DATE), cpi : parseFloat(data.CPI) }
     });
@@ -224,11 +245,11 @@ function updatePage() {
         calculateInflation(data);
         data = data.filter(
             d => d.date.getFullYear() >= lowerYear && d.date.getFullYear() < upperYear);
-        updateLineGraph(data);
+        updateLineGraph(data, annotations);
     });
 }
 
-function updateLineGraph(data) {
+function updateLineGraph(data, annotations) {
     const xScale = d3.scaleTime()
         .domain(d3.extent(data, function(d) { return d.date }))
         .range([0, width]);
@@ -258,14 +279,42 @@ function updateLineGraph(data) {
         .attr('d', d3.line()
             .x(function(d) { return xScale(d.date) })
             .y(function(d) { return yScale(d.inflation) }));
+
+    const lineSelection = d3.select('#annotation-group').selectAll('line')
+        .data(annotations);
+
+    lineSelection.enter()
+        .append('line')
+        .merge(lineSelection)
+        .attr('x1', function(d) { return xScale(d.date); } )
+        .attr('y1', yScale(0))
+        .attr('x2', function(d) { return xScale(d.date); })
+        .attr('y2', yScale(14))
+        .attr('stroke', 'grey')
+        .attr('stroke-dasharray', '4');
+
+    lineSelection.exit()
+        .remove();
+
+    const textSelection = d3.select('#annotation-group').selectAll('text')
+        .data(annotations);
+
+    textSelection.enter()
+        .append('text')
+        .merge(textSelection)
+        .attr('x', function(d) { return xScale(d.date); })
+        .attr('y', yScale(14.5))
+        .text(function(d) { return d.annotation; })
+        .style('font-size', '14px');
+
+    textSelection.exit()
+        .remove();
 }
 
 function prevClick() {
     if (pageCounter > 1)
         pageCounter--;
     d3.select('#page-div').html(pageCounter + '/5')
-
-    d3.select('#narrative').html('Insert narrative here: ' + pageCounter);
 
     updatePage();
 }
@@ -317,6 +366,52 @@ function setupCategoryButtonClicks() {
         updatePage();
     });
 }
+
+function getPage1Text() {
+    return "Inflation is the rise in prices of goods and services in an " +
+        "economy over time.  The last 8 years has been marked by fairly low " +
+        "inflation in the US, ranging from around 0-3%.  If we look at the " +
+        "graph below, we can see the relatively low year-on-year inflation rate. " +
+        "However, following a recent pandemic marked by massive federal " +
+        "government spending and substantial money creation by the Federal " +
+        "Reserve to support this spending, we are now seeing inflation rates approach " +
+        "5%.  To understand this issue better, it helps to look at the history " +
+        "of inflation in the US and where we stand today."
+}
+
+function getPage2Text() {
+    return "In the time period following World War II, the USA also experienced low " +
+        "inflation.  Under the Bretton Woods system, the US dollar was tied to gold " +
+        "reserves.  Since the US dollar was backed by an underlying asset with " + 
+        "intrinsic value, that kept inflation limited.  However, this period of low " +
+        "inflation would not last."
+}
+
+function getPage3Text() {
+    return "Through the 1960s, the growth in global trade had increased the demand for " +
+        "the US dollar.  At some point, the US no longer had sufficient gold reserves " +
+        "to be able to convert dollars into gold.  During the late 1960s, an increase " +
+        "in inflation led to increased demands for conversions leading the US to abandon " +
+        "the Breton Woods system in 1971.  With the US dollar no longer tied to gold " +
+        "and energy crises in the 1970s, inflation skyrocketed.";
+}
+
+function getPage4Text() {
+    return "In 1979, Paul Volcker became chairman of the Federal Reserve Board.  He took office " +
+        "at a time of record inflation and high unemployment.  Since anti-inflation " +
+        "measures can also increase unemployment and limit the growth of the economy, " +
+        "stopping inflation would likely inflict even more harm to the well-being of citizens. " +
+        "However, at this point, the harm of inflation was clear and the Federal Reserve was " +
+        "committed to limiting the growth of the money supply.  After two recessions, " +
+        "inflation substantially decreased and has remained low since then."
+}
+
+function getPage5Text() {
+    return "";
+}
+
+
+
 
 
 </script>
