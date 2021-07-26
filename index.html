@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html>
 
+<!--
+    CS 416 - Data Visualization - Narrative Visualization Project
+
+    Data and information sourced from:
+    https://fred.stlouisfed.org/
+    https://www.federalreservehistory.org/essays/great-inflation
+    https://en.wikipedia.org/wiki/1990_oil_price_shock
+    https://en.wikipedia.org/wiki/Financial_crisis_of_2007-2008
+-->
+
 <head>
     <title>Narrative Visualization Final Project</title>
     <link href="bootstrap.min.css" rel="stylesheet">
@@ -201,6 +211,8 @@ function updatePage() {
         upperYear = 2022;
         annotations = [
             {date: new Date('1979-04-01'), annotation: 'Volcker becomes Fed chairman', height: 15},
+            {date: new Date('1990-10-01'), annotation: '1990 oil price shock', height: 14},
+            {date: new Date('2008-07-01'), annotation: 'Global financial crisis', height: 15},
         ];
         narrativeText = getPage4Text();
     }
@@ -228,7 +240,6 @@ function updatePage() {
         calculateInflation(data);
         data = data.filter(
             d => d.date.getFullYear() >= lowerYear && d.date.getFullYear() < upperYear);
-        console.log(data);
         updateLineGraph(data, annotations);
     });
 }
@@ -244,11 +255,11 @@ function updateLineGraph(data, annotations) {
 
     //avoid issues rendering unicode dash by using minus sign instead for negative numbers
     locale = d3.formatLocale({
-        decimal: ".",
-        thousands: ",",
+        decimal: '.',
+        thousands: ',',
         grouping: [3],
-        currency: ["$", ""],
-        minus: "-"
+        currency: ['$', ''],
+        minus: '-'
         });
 
     d3.select('#y-axis')
@@ -313,89 +324,95 @@ function nextClick() {
 }
 
 function setupCategoryButtonClicks() {
-    d3.select("#cpi-all").on('click', function() {
+    d3.select('#cpi-all').on('click', function() {
         chosenCPIFile = 'CPIAUCSL_cpi_all.csv';
         updatePage();
     });
-    d3.select("#cpi-apparel").on('click', function() {
+    d3.select('#cpi-apparel').on('click', function() {
         chosenCPIFile = 'CPIAPPSL_cpi_apparel.csv';
         updatePage();
     });
-    d3.select("#cpi-education").on('click', function() {
+    d3.select('#cpi-education').on('click', function() {
         chosenCPIFile = 'CPIEDUSL_cpi_education_communication.csv';
         updatePage();
     });
-    d3.select("#cpi-food").on('click', function() {
+    d3.select('#cpi-food').on('click', function() {
         chosenCPIFile = 'CPIFABSL_cpi_food_beverages.csv';
         updatePage();
     });
-    d3.select("#cpi-housing").on('click', function() {
+    d3.select('#cpi-housing').on('click', function() {
         chosenCPIFile = 'CPIHOSSL_cpi_housing.csv';
         updatePage();
     });
-    d3.select("#cpi-medical").on('click', function() {
+    d3.select('#cpi-medical').on('click', function() {
         chosenCPIFile = 'CPIMEDSL_cpi_medical.csv';
         updatePage();
     });
-    d3.select("#cpi-other").on('click', function() {
+    d3.select('#cpi-other').on('click', function() {
         chosenCPIFile = 'CPIOGSSL_cpi_other_goods_and_services.csv';
         updatePage();
     });
-    d3.select("#cpi-recreation").on('click', function() {
+    d3.select('#cpi-recreation').on('click', function() {
         chosenCPIFile = 'CPIRECSL_cpi_recreation.csv';
         updatePage();
     });
-    d3.select("#cpi-transportation").on('click', function() {
+    d3.select('#cpi-transportation').on('click', function() {
         chosenCPIFile = 'CPITRNSL_cpi_transportation.csv';
         updatePage();
     });
 }
 
 function getPage1Text() {
-    return "Inflation is the rise in prices of goods and services in an " +
-        "economy over time.  The last 8 years has been marked by fairly low " +
-        "inflation in the US, ranging from around 0-3%.  If we look at the " +
-        "graph below, we can see the relatively low year-on-year inflation rate. " +
-        "However, following a recent pandemic marked by massive federal " +
-        "government spending and substantial money creation by the Federal " +
-        "Reserve to support this spending, we are now seeing inflation rates approach " +
-        "5%.  To understand this issue better, it helps to look at the history " +
-        "of inflation in the US and where we stand today.";
+    return 'Inflation is the rise in prices of goods and services in an ' +
+        'economy over time.  The last 8 years has been marked by fairly low ' +
+        'inflation in the US, ranging around 0-3%.  If we look at the ' +
+        'graph above, we can see the relatively low year-on-year inflation rate. ' +
+        'However, following a recent pandemic marked by massive federal ' +
+        'government spending and substantial money creation by the Federal ' +
+        'Reserve (the central bank of the US) to support this spending, we are now ' +
+        'seeing inflation rates approach 5%.  To understand this issue better, ' +
+        'it helps to look at the history of inflation in the US and where we stand today. ' +
+        'By looking at the historical context, we can see that the current levels of ' + 
+        'inflation are still relatively low.';
 }
 
 function getPage2Text() {
-    return "In the time period following World War II, the USA also experienced low " +
-        "inflation.  Under the Bretton Woods system, the US dollar was tied to gold " +
-        "reserves.  Since the US dollar was backed by an underlying asset with " + 
-        "intrinsic value, that kept inflation limited.  However, this period of low " +
-        "inflation would not last.";
+    return 'In the time period following World War II, the USA also experienced low ' +
+        'inflation.  Under the Bretton Woods system, the US dollar was tied to gold ' +
+        'reserves.  Since the US dollar was backed by an underlying asset with ' + 
+        'intrinsic value, that kept inflation limited.  However, this period of low ' +
+        'inflation would not last.';
 }
 
 function getPage3Text() {
-    return "Through the 1960s, the growth in global trade had increased the demand for " +
-        "the US dollar.  At some point, the US no longer had sufficient gold reserves " +
-        "to be able to convert dollars into gold.  During the late 1960s, an increase " +
-        "in inflation led to increased demands for conversions leading the US to abandon " +
-        "the Bretton Woods system in 1971.  With the US dollar no longer tied to gold " +
-        "and energy crises in the 1970s, inflation skyrocketed.";
+    return 'Through the 1960s, the growth in global trade had increased the demand for ' +
+        'the US dollar.  At some point, the US no longer had sufficient gold reserves ' +
+        'to be able to convert dollars into gold.  During the late 1960s, an increase ' +
+        'in inflation led to increased demands for conversions leading the US to abandon ' +
+        'the Bretton Woods system in 1971.  With the US dollar no longer tied to gold ' +
+        'and energy crises in the 1970s, inflation skyrocketed.';
 }
 
 function getPage4Text() {
-    return "In 1979, Paul Volcker became chairman of the Federal Reserve Board.  He took office " +
-        "at a time of record inflation and high unemployment.  Since anti-inflation " +
-        "measures can also increase unemployment and limit the growth of the economy, " +
-        "stopping inflation would likely inflict even more harm to the well-being of citizens. " +
-        "However, at this point, the harm of inflation was clear and the Federal Reserve was " +
-        "committed to taking aggressive action to limit the growth of the money supply. " +
-        " After two recessions and a period of increased unemployment, inflation substantially " +
-        "decreased and has remained low since then.";
+    return 'In 1979, Paul Volcker became chairman of the Federal Reserve Board.  He took office ' +
+        'at a time of record inflation and high unemployment.  Since anti-inflation ' +
+        'measures can also increase unemployment and limit the growth of the economy, ' +
+        'stopping inflation would likely inflict even more harm to the well-being of citizens. ' +
+        'However, at this point, the harm of inflation was clear and the Federal Reserve was ' +
+        'committed to taking aggressive action to limit the growth of the money supply. ' +
+        ' After two recessions and a period of increased unemployment, inflation substantially ' +
+        'decreased and has remained low since then.  Some exceptions include the oil shock of 1990 ' +
+        'and the midst of the global financial crisis of 2007-2008.  As we can see, inflation in the ' +
+        'present, while substantial, is nowhere near the alarming rates of the past.';
 }
 
 function getPage5Text() {
-    return "Inflation rates are calculated from the CPI (consumer price index) which reflects the prices " +
-        "of a basket of goods from the economy.  Below, you can see the different categories of goods used " +
-        "to calculate the CPI.  Click on a category to find inflation rates for each individual category " +
-        "and explore how different goods contributed to inflation during different time periods.";
+    return 'Inflation rates are calculated from the CPI (consumer price index) which reflects the prices ' +
+        'of a basket of goods from the economy.  Below, you can see the different categories of goods used '+
+        'to calculate the CPI.  Click on a category to find inflation rates for each individual category ' +
+        'and explore how different goods contributed to inflation during different time periods.  For more ' +
+        'background see <a href="https://www.federalreservehistory.org/essays/great-inflation">' +
+        'Federal Reserve History</a>.';
 }
 
 </script>
